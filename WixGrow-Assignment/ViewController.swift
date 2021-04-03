@@ -39,7 +39,7 @@ class ViewController: UIViewController {
 
         var submitAnswerRequest = SubmitAnswerRequest(results: [])
         
-        for i in 0..<jobResponse.jobs.count - 18 {
+        for i in 0..<jobResponse.jobs.count - 17 {
             let result = calculateJob(job: jobResponse.jobs[i])
             submitAnswerRequest.results.append(result)
         }
@@ -60,9 +60,10 @@ class ViewController: UIViewController {
         
         for (Aindex, row) in jobData.enumerated() {
             for (Bindex, column) in row.enumerated() {
-                referenceDictionary["\(notationArray[Aindex])\(Bindex+1)"] = column?.value
+                referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = column?.value
             }
         }
+        print(referenceDictionary)
         
         copyValues(jobData: jobData, data: &data)
         calculateFormula(jobData: jobData, data: &data, referenceDictionary: referenceDictionary)
@@ -97,6 +98,16 @@ class ViewController: UIViewController {
                             formula: nil
                         )
                         data[0].append(jobData)
+                    }
+                    if let sum = columnValue.sum {
+                        var answer: Double = 0
+                        for reference in sum {
+                            guard let value = referenceDictionary[reference.reference]?.number else { return }
+                            answer += value
+                        }
+                        data[0].append(JobData(
+                                        value: Value(number: answer, boolean: nil, text: nil),
+                                        formula: nil))
                     }
                 }
             }
