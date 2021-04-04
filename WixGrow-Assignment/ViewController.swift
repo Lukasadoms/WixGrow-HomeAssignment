@@ -39,7 +39,7 @@ class ViewController: UIViewController {
 
         var submitAnswerRequest = SubmitAnswerRequest(results: [])
         
-        for i in 0..<jobResponse.jobs.count - 17 {
+        for i in 0..<jobResponse.jobs.count - 0 {
             let result = calculateJob(job: jobResponse.jobs[i])
             submitAnswerRequest.results.append(result)
         }
@@ -57,47 +57,62 @@ class ViewController: UIViewController {
         if jobData.isEmpty {
             return JobResult(id: job.id, data: [])
         }
-        
-        for (Aindex, row) in jobData.enumerated() {
-            for (Bindex, column) in row.enumerated() {
-                referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = column?.value
-            }
-        }
+        updateDictionary(jobData: jobData, referenceDictionary: &referenceDictionary)
+//        for (Aindex, row) in jobData.enumerated() {
+//            for (Bindex, column) in row.enumerated() {
+//                referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = column?.value
+//            }
+//        }
         print(referenceDictionary)
         
-        copyValues(jobData: jobData, data: &data)
-        calculateFormula(jobData: jobData, data: &data, referenceDictionary: referenceDictionary)
+        copyValues(jobData: jobData, data: &data, referenceDictionary: referenceDictionary)
+        calculateFormula(jobData: jobData, data: &data, referenceDictionary: &referenceDictionary)
         
         jobAnswer.data = data
         
         return jobAnswer
     }
     
-    func copyValues(jobData: [[JobData?]], data: inout[[JobData]] ) {
+    func copyValues(jobData: [[JobData?]], data: inout[[JobData]], referenceDictionary: [String: Value] ){
+        var index = 0
+        
         for row in jobData {
             for column in row {
                 if let columnValue = column?.value {
                     let jobData = JobData(value: columnValue, formula: nil)
-                    data[0].append(jobData)
+                    if data.indices.contains(index) {
+                        data[index].append(jobData)
+                    } else {
+                        data.append([])
+                        data[index].append(jobData)
+                    }
                 }
             }
+            index += 1
         }
     }
     
     func calculateFormula(
         jobData: [[JobData?]],
         data: inout[[JobData]],
-        referenceDictionary: [String: Value]
+        referenceDictionary: inout[String: Value]
     ) {
+        var index = 0
         for row in jobData {
             for column in row {
                 if let columnValue = column?.formula {
                     if let reference = columnValue.reference {
-                        let jobData = JobData(
+                        let jobDataa = JobData(
                             value: referenceDictionary[reference],
                             formula: nil
                         )
-                        data[0].append(jobData)
+                        if data.indices.contains(index) {
+                            data[index].append(jobDataa)
+                        } else {
+                            data.append([])
+                            data[index].append(jobDataa)
+                        }
+                        updateDictionary(jobData: data, referenceDictionary: &referenceDictionary)
                     }
                     if let sum = columnValue.sum {
                         var answer: Double = 0
@@ -105,12 +120,139 @@ class ViewController: UIViewController {
                             guard let value = referenceDictionary[reference.reference]?.number else { return }
                             answer += value
                         }
-                        data[0].append(JobData(
+                        data[index].append(JobData(
                                         value: Value(number: answer, boolean: nil, text: nil),
                                         formula: nil))
                     }
+                    if let multiplication = columnValue.multiply {
+                        var answer: Double = 1
+                        for reference in multiplication {
+                            guard let value = referenceDictionary[reference.reference]?.number else { return }
+                            answer *= value
+                        }
+                        data[index].append(JobData(
+                                        value: Value(number: answer, boolean: nil, text: nil),
+                                        formula: nil))
+                    }
+                    
+                    if let divide = columnValue.divide {
+                        var firstNumber: Double = 0
+                        var answer: Double = 1
+                        for reference in divide {
+                            guard let value = referenceDictionary[reference.reference]?.number else { return }
+                            if firstNumber != 0  {
+                                answer = firstNumber/value
+                            } else {
+                                firstNumber = value
+                            }
+                        }
+                        data[index].append(JobData(
+                                        value: Value(number: answer, boolean: nil, text: nil),
+                                        formula: nil))
+                    }
+                    
+                    if let function = columnValue.isGreater {
+                        let result = calculateIsGreater(function: function, referenceDictionary: referenceDictionary)
+                        let answer = Value(number: nil, boolean: result, text: nil)
+                        data[index].append(JobData(value: answer, formula: nil) )
+                    }
+                    
+                    if let isEqual = columnValue.isEqual{
+                        var firstNumber: Double = 0
+                        var answer: Bool = false
+                        for reference in isEqual {
+                            guard let value = referenceDictionary[reference.reference]?.number else { return }
+                            if firstNumber != 0  {
+                                answer = firstNumber == value
+                            } else {
+                                firstNumber = value
+                            }
+                        }
+                        data[index].append(JobData(
+                                        value: Value(number: nil, boolean: answer, text: nil),
+                                        formula: nil))
+                    }
+                    
+                    if let not = columnValue.not {
+                        var answer: Bool = false
+                        guard let value = referenceDictionary[not.reference]?.boolean else { return }
+                        answer = !value
+                        data[index].append(JobData(
+                                        value: Value(number: nil, boolean: answer, text: nil),
+                                        formula: nil))
+                    }
+                    
+                    if let and = columnValue.and {
+                        var answer: Bool?
+                        var finalAnswer = JobData(value: nil, formula: nil, error: nil)
+                        for reference in and {
+                            guard let value = referenceDictionary[reference.reference] else { return }
+                            if let bool = value.boolean as? Bool {
+                                if let answerr = answer {
+                                    answer = answerr && bool
+                                    finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
+                                } else {
+                                    answer = bool
+                                }
+                            } else {
+                                finalAnswer.error = "error"
+                            }
+                        }
+                        data[index].append(finalAnswer)
+                    }
+                    
+                    if let or = columnValue.or {
+                        var answer: Bool?
+                        var finalAnswer = JobData(value: nil, formula: nil, error: nil)
+                        for reference in or {
+                            guard let value = referenceDictionary[reference.reference] else { return }
+                            if let bool = value.boolean as? Bool {
+                                if let answerr = answer {
+                                    answer = answerr || bool
+                                    finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
+                                } else {
+                                    answer = bool
+                                }
+                            } else {
+                                finalAnswer.error = "error"
+                            }
+                        }
+                        data[index].append(finalAnswer)
+                    }
+                    
+                    if let function = columnValue.formulaIf {
+                        var answer: Bool?
+                        var finalAnswer = JobData(value: nil, formula: nil, error: nil)
+                        for reference in function {
+                            if let isGreater = reference.isGreater {
+                                answer = calculateIsGreater(function: isGreater, referenceDictionary: referenceDictionary)
+                            }
+                        }
+                        guard let answerr = answer else { return }
+                        if answerr {
+                            let value = referenceDictionary[function[1].reference!]?.number
+                            finalAnswer.value = Value(number: value, boolean: nil, text: nil)
+                        } else {
+                            let value = referenceDictionary[function[2].reference!]?.number
+                            finalAnswer.value = Value(number: value, boolean: nil, text: nil)
+                        }
+                        data[index].append(finalAnswer)
+                    }
+                    
+                    if let function = columnValue.concat {
+                        var jobAnswer = JobData(value: nil, formula: nil, error: nil)
+                        var answerValue = Value(number: nil, boolean: nil, text: nil)
+                        var text = ""
+                        for value in function {
+                            text += value.value.text
+                        }
+                        answerValue.text = text
+                        jobAnswer.value = answerValue
+                        data[index].append(jobAnswer)
+                    }
                 }
             }
+            index += 1
         }
     }
     
@@ -130,6 +272,28 @@ class ViewController: UIViewController {
                 }
             }
             
+        }
+    }
+    
+    func calculateIsGreater(function: [Reference], referenceDictionary: [String: Value]) -> Bool? {
+        var firstNumber: Double?
+        var answer: Bool?
+        for reference in function {
+            guard let value = referenceDictionary[reference.reference] else { return nil }
+            if let first = firstNumber {
+                answer = first > value.number!
+            } else {
+                firstNumber = value.number!
+            }
+        }
+        return answer
+    }
+    
+    func updateDictionary(jobData: [[JobData?]], referenceDictionary: inout[String: Value]){
+        for (Aindex, row) in jobData.enumerated() {
+            for (Bindex, column) in row.enumerated() {
+                referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = column?.value
+            }
         }
     }
 }

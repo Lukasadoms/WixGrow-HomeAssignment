@@ -28,16 +28,17 @@ struct Job: Codable {
 // MARK: - JobData
 
 struct JobData: Codable {
-    let value: Value?
+    var value: Value?
     let formula: Formula?
+    var error: String?
 }
 
 // MARK: - Value
 
 struct Value: Codable {
-    let number: Double?
-    let boolean: Bool?
-    let text: String?
+    var number: Double?
+    var boolean: Bool?
+    var text: String?
 }
 
 // MARK: - Formula
