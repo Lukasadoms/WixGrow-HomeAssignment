@@ -11,7 +11,7 @@ class ViewController: UIViewController {
     
     var apiManager = APIManager()
     var jobResponse: JobResponse?
-    let notationArray = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+    let notationArray = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T"]
     let xs = (97...122).map({Character(UnicodeScalar($0))})
     //let name = "\(xs[0])1"
 
@@ -58,13 +58,9 @@ class ViewController: UIViewController {
             return JobResult(id: job.id, data: [])
         }
         updateDictionary(jobData: jobData, referenceDictionary: &referenceDictionary)
-//        for (Aindex, row) in jobData.enumerated() {
-//            for (Bindex, column) in row.enumerated() {
-//                referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = column?.value
-//            }
-//        }
+
         print(referenceDictionary)
-        
+        print(job.id)
         copyValues(jobData: jobData, data: &data, referenceDictionary: referenceDictionary)
         calculateFormula(jobData: jobData, data: &data, referenceDictionary: &referenceDictionary)
         
@@ -73,11 +69,20 @@ class ViewController: UIViewController {
         return jobAnswer
     }
     
-    func copyValues(jobData: [[JobData?]], data: inout[[JobData]], referenceDictionary: [String: Value] ){
+    func copyValues(jobData: [[JobData?]], data: inout[[JobData]], referenceDictionary: [String: Value]){
         var index = 0
         
         for row in jobData {
             for column in row {
+                if let columnValue = column?.formula {
+                    let jobData = JobData(value: nil, formula: nil)
+                    if data.indices.contains(index) {
+                        data[index].append(jobData)
+                    } else {
+                        data.append([])
+                        data[index].append(jobData)
+                    }
+                }
                 if let columnValue = column?.value {
                     let jobData = JobData(value: columnValue, formula: nil)
                     if data.indices.contains(index) {
@@ -97,8 +102,9 @@ class ViewController: UIViewController {
         data: inout[[JobData]],
         referenceDictionary: inout[String: Value]
     ) {
-        var index = 0
+        var yIndex = 0
         for row in jobData {
+            var xIndex = 0
             for column in row {
                 if let columnValue = column?.formula {
                     if let reference = columnValue.reference {
@@ -106,11 +112,11 @@ class ViewController: UIViewController {
                             value: referenceDictionary[reference],
                             formula: nil
                         )
-                        if data.indices.contains(index) {
-                            data[index].append(jobDataa)
+                        if data.indices.contains(yIndex) {
+                            data[yIndex][xIndex] = jobDataa
                         } else {
                             data.append([])
-                            data[index].append(jobDataa)
+                            data[yIndex].append(jobDataa)
                         }
                         updateDictionary(jobData: data, referenceDictionary: &referenceDictionary)
                     }
@@ -120,9 +126,8 @@ class ViewController: UIViewController {
                             guard let value = referenceDictionary[reference.reference]?.number else { return }
                             answer += value
                         }
-                        data[index].append(JobData(
-                                        value: Value(number: answer, boolean: nil, text: nil),
-                                        formula: nil))
+                        data[yIndex][xIndex] = JobData(value: Value(number: answer, boolean: nil, text: nil),
+                                        formula: nil)
                     }
                     if let multiplication = columnValue.multiply {
                         var answer: Double = 1
@@ -130,7 +135,7 @@ class ViewController: UIViewController {
                             guard let value = referenceDictionary[reference.reference]?.number else { return }
                             answer *= value
                         }
-                        data[index].append(JobData(
+                        data[yIndex][xIndex] = (JobData(
                                         value: Value(number: answer, boolean: nil, text: nil),
                                         formula: nil))
                     }
@@ -146,15 +151,15 @@ class ViewController: UIViewController {
                                 firstNumber = value
                             }
                         }
-                        data[index].append(JobData(
+                        data[yIndex][xIndex] = JobData(
                                         value: Value(number: answer, boolean: nil, text: nil),
-                                        formula: nil))
+                                        formula: nil)
                     }
                     
                     if let function = columnValue.isGreater {
                         let result = calculateIsGreater(function: function, referenceDictionary: referenceDictionary)
                         let answer = Value(number: nil, boolean: result, text: nil)
-                        data[index].append(JobData(value: answer, formula: nil) )
+                        data[yIndex][xIndex] = JobData(value: answer, formula: nil)
                     }
                     
                     if let isEqual = columnValue.isEqual{
@@ -168,18 +173,18 @@ class ViewController: UIViewController {
                                 firstNumber = value
                             }
                         }
-                        data[index].append(JobData(
+                        data[yIndex][xIndex] = JobData(
                                         value: Value(number: nil, boolean: answer, text: nil),
-                                        formula: nil))
+                                        formula: nil)
                     }
                     
                     if let not = columnValue.not {
                         var answer: Bool = false
                         guard let value = referenceDictionary[not.reference]?.boolean else { return }
                         answer = !value
-                        data[index].append(JobData(
+                        data[yIndex][xIndex] = JobData(
                                         value: Value(number: nil, boolean: answer, text: nil),
-                                        formula: nil))
+                                        formula: nil)
                     }
                     
                     if let and = columnValue.and {
@@ -198,7 +203,7 @@ class ViewController: UIViewController {
                                 finalAnswer.error = "error"
                             }
                         }
-                        data[index].append(finalAnswer)
+                        data[yIndex][xIndex] = finalAnswer
                     }
                     
                     if let or = columnValue.or {
@@ -217,7 +222,7 @@ class ViewController: UIViewController {
                                 finalAnswer.error = "error"
                             }
                         }
-                        data[index].append(finalAnswer)
+                        data[yIndex][xIndex] = finalAnswer
                     }
                     
                     if let function = columnValue.formulaIf {
@@ -236,7 +241,7 @@ class ViewController: UIViewController {
                             let value = referenceDictionary[function[2].reference!]?.number
                             finalAnswer.value = Value(number: value, boolean: nil, text: nil)
                         }
-                        data[index].append(finalAnswer)
+                        data[yIndex][xIndex] = finalAnswer
                     }
                     
                     if let function = columnValue.concat {
@@ -248,12 +253,19 @@ class ViewController: UIViewController {
                         }
                         answerValue.text = text
                         jobAnswer.value = answerValue
-                        data[index].append(jobAnswer)
+                        data[yIndex][xIndex] = jobAnswer
                     }
                 }
+                xIndex += 1
             }
-            index += 1
+            yIndex += 1
         }
+//        let flattened = Array(data.joined())
+//        let a = flattened.contains { $0.value == nil }
+//        if a {
+//            calculateFormula(jobData: data, data: &data, referenceDictionary: &referenceDictionary)
+//        }
+        
     }
     
     func postAnswers(submitAnswerRequest: SubmitAnswerRequest, submitUrl: String ) {
