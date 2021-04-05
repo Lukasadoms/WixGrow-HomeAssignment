@@ -10,7 +10,7 @@ import UIKit
 class ViewController: UIViewController {
     
     var apiManager = APIManager()
-    var calculationManager = CalculationManager(dictionaryManager: DictionaryManager())
+    var calculationManager = CalculationManager()
     var jobResponse: JobResponse?
     
     override func viewDidLoad() {
@@ -36,11 +36,7 @@ class ViewController: UIViewController {
     @IBAction func calculateButtonPressed(_ sender: Any) {
         
         guard let jobResponse = jobResponse else { return }
-        var submitAnswerRequest = SubmitAnswerRequest(results: [])
-        for job in jobResponse.jobs {
-            let result = calculationManager.calculateJob(job: job)
-            submitAnswerRequest.results.append(result)
-        }
+        let submitAnswerRequest = calculationManager.calculateAnswerRequest(jobResponse: jobResponse)
         postAnswers(submitAnswerRequest: submitAnswerRequest, submitUrl: jobResponse.submissionURL)
     }
     
