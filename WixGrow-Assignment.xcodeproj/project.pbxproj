@@ -19,6 +19,8 @@
 		C98E473C2614C464006B75A4 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E473B2614C464006B75A4 /* APIError.swift */; };
 		C98E474B26176941006B75A4 /* SubmitAnswerRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E474A26176941006B75A4 /* SubmitAnswerRequest.swift */; };
 		C98E4750261866FA006B75A4 /* PostAnswersResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E474F261866FA006B75A4 /* PostAnswersResponse.swift */; };
+		C98E4754261B2BD8006B75A4 /* CalculationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E4753261B2BD8006B75A4 /* CalculationManager.swift */; };
+		C98E4757261B2CF0006B75A4 /* DictionaryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E4756261B2CF0006B75A4 /* DictionaryManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,8 @@
 		C98E473B2614C464006B75A4 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		C98E474A26176941006B75A4 /* SubmitAnswerRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitAnswerRequest.swift; sourceTree = "<group>"; };
 		C98E474F261866FA006B75A4 /* PostAnswersResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAnswersResponse.swift; sourceTree = "<group>"; };
+		C98E4753261B2BD8006B75A4 /* CalculationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationManager.swift; sourceTree = "<group>"; };
+		C98E4756261B2CF0006B75A4 /* DictionaryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +80,8 @@
 				C98E47242614B917006B75A4 /* Assets.xcassets */,
 				C98E47262614B917006B75A4 /* LaunchScreen.storyboard */,
 				C98E47292614B917006B75A4 /* Info.plist */,
+				C98E4753261B2BD8006B75A4 /* CalculationManager.swift */,
+				C98E4756261B2CF0006B75A4 /* DictionaryManager.swift */,
 			);
 			path = "WixGrow-Assignment";
 			sourceTree = "<group>";
@@ -164,6 +170,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C98E47202614B916006B75A4 /* ViewController.swift in Sources */,
+				C98E4757261B2CF0006B75A4 /* DictionaryManager.swift in Sources */,
+				C98E4754261B2BD8006B75A4 /* CalculationManager.swift in Sources */,
 				C98E471C2614B916006B75A4 /* AppDelegate.swift in Sources */,
 				C98E474B26176941006B75A4 /* SubmitAnswerRequest.swift in Sources */,
 				C98E47382614BAD6006B75A4 /* JobResponse.swift in Sources */,

@@ -65,7 +65,11 @@ struct Formula: Codable {
 // MARK: - Reference
 
 struct Reference: Codable {
-    let reference: String
+    let string: String
+    
+    enum CodingKeys: String, CodingKey {
+        case string = "reference"
+    }
 }
 
 // MARK: - Concat

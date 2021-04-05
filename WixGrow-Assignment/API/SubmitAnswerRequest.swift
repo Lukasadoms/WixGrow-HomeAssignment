@@ -8,6 +8,6 @@
 import Foundation
 
 struct SubmitAnswerRequest: Codable {
-    let email: String = "lukasadoms@gmail.com"
+    var email: String = "lukasadoms@gmail.com"
     var results: [Job]
 }
