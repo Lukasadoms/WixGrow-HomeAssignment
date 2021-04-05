@@ -22,7 +22,7 @@ struct JobResponse: Codable {
 
 struct Job: Codable {
     let id: String
-    var data: [[JobData?]]?
+    var data: [[JobData]]
 }
 
 // MARK: - JobData

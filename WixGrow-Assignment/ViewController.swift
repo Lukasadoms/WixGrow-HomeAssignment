@@ -11,10 +11,11 @@ class ViewController: UIViewController {
     
     var apiManager = APIManager()
     var jobResponse: JobResponse?
-    let notationArray = (97...122).map({Character(UnicodeScalar($0))}).map { $0.uppercased()}
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        getJobs()
     }
     
     func getJobs() {
@@ -31,7 +32,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func calculateButtonPressed(_ sender: Any) {
-        getJobs()
+        
         guard let jobResponse = jobResponse else { return }
         var submitAnswerRequest = SubmitAnswerRequest(results: [])
         for job in jobResponse.jobs {
@@ -42,74 +43,69 @@ class ViewController: UIViewController {
     }
     
     
-    func calculateJob(job: Job) -> JobResult? {
-        var jobAnswer = JobResult(id: job.id, data: [[]])
-        var data: [[JobData]] = [[]]
+    func calculateJob(job: Job) -> Job {
         var referenceDictionary: [String: Value] = [:]
-        
-        guard let jobData = job.data else { return nil }
-        
-        if jobData.isEmpty {
-            return JobResult(id: job.id, data: [])
+        var jobAnswer = job
+        if jobAnswer.data.isEmpty {
+            return Job(id: job.id, data: [])
         }
-        print(job.id)
-        updateDictionary(jobData: jobData, referenceDictionary: &referenceDictionary)
-        copyValues(jobData: jobData, data: &data, referenceDictionary: referenceDictionary)
-        calculateFormula(jobData: jobData, data: &data, referenceDictionary: &referenceDictionary)
-        jobAnswer.data = data
+        updateDictionary(jobData: jobAnswer.data, referenceDictionary: &referenceDictionary)
+        calculateFormula(jobData: &jobAnswer.data, referenceDictionary: &referenceDictionary)
+        print(jobAnswer)
         return jobAnswer
     }
     
-    func copyValues(jobData: [[JobData?]], data: inout[[JobData]], referenceDictionary: [String: Value]){
-        var index = 0
-        for row in jobData {
-            for column in row {
-                var jobData = JobData(value: nil, formula: nil)
-                if let columnValue = column?.value {
-                    jobData.value = columnValue
-                }
-                if data.indices.contains(index) {
-                    data[index].append(jobData)
-                } else {
-                    data.append([])
-                    data[index].append(jobData)
-                }
-            }
-            index += 1
-        }
-    }
-    
     func calculateFormula(
-        jobData: [[JobData?]],
-        data: inout[[JobData]],
+        jobData: inout[[JobData]],
         referenceDictionary: inout[String: Value]
     ) {
         var yIndex = 0
+        
         for row in jobData {
             var xIndex = 0
             for column in row {
-                if let columnValue = column?.formula?.reference {
-                    calculateReference(reference: columnValue, referenceDictionary: referenceDictionary, yIndex: yIndex, xIndex: xIndex, data: &data)
-                    updateDictionary(jobData: data, referenceDictionary: &referenceDictionary)
+                if let columnValue = column.formula?.reference {
+                    calculateReference(reference: columnValue,
+                                       referenceDictionary: referenceDictionary,
+                                       yIndex: yIndex,
+                                       xIndex: xIndex,
+                                       jobData: &jobData
+                    )
+                    updateDictionary(jobData: jobData, referenceDictionary: &referenceDictionary)
                 }
-                if let columnValue = column?.formula?.sum {
-                    calculateSum(columnValue: columnValue, referenceDictionary: referenceDictionary, yIndex: yIndex, xIndex: xIndex, data: &data)
+                if let columnValue = column.formula?.sum {
+                    calculateSum(columnValue: columnValue,
+                                 referenceDictionary: referenceDictionary,
+                                 yIndex: yIndex,
+                                 xIndex: xIndex,
+                                 data: &jobData
+                    )
                 }
-                if let columnValue = column?.formula?.multiply {
-                   calculateMultiplication(columnValue: columnValue, referenceDictionary: referenceDictionary, yIndex: yIndex, xIndex: xIndex, data: &data)
+                if let columnValue = column.formula?.multiply {
+                   calculateMultiplication(columnValue: columnValue,
+                                           referenceDictionary: referenceDictionary,
+                                           yIndex: yIndex,
+                                           xIndex: xIndex,
+                                           jobData: &jobData
+                   )
                 }
                     
-                if let columnValue = column?.formula?.divide {
-                    calculateDivision(columnValue: columnValue, referenceDictionary: referenceDictionary, yIndex: yIndex, xIndex: xIndex, data: &data)
+                if let columnValue = column.formula?.divide {
+                    calculateDivision(columnValue: columnValue,
+                                      referenceDictionary: referenceDictionary,
+                                      yIndex: yIndex,
+                                      xIndex: xIndex,
+                                      data: &jobData
+                    )
                 }
                     
-                if let columnValue = column?.formula?.isGreater {
+                if let columnValue = column.formula?.isGreater {
                     let result = calculateIsGreater(function: columnValue, referenceDictionary: referenceDictionary)
                     let answer = Value(number: nil, boolean: result, text: nil)
-                    data[yIndex][xIndex] = JobData(value: answer, formula: nil)
+                    jobData[yIndex][xIndex] = JobData(value: answer, formula: nil)
                 }
                     
-                if let columnValue = column?.formula?.isEqual{
+                if let columnValue = column.formula?.isEqual{
                     var firstNumber: Double = 0
                     var answer: Bool = false
                     for reference in columnValue {
@@ -120,21 +116,21 @@ class ViewController: UIViewController {
                             firstNumber = value
                         }
                     }
-                    data[yIndex][xIndex] = JobData(
+                    jobData[yIndex][xIndex] = JobData(
                         value: Value(number: nil, boolean: answer, text: nil),
                         formula: nil)
                 }
                     
-                if let columnValue = column?.formula?.not {
+                if let columnValue = column.formula?.not {
                     var answer: Bool = false
                     guard let value = referenceDictionary[columnValue.reference]?.boolean else { return }
                     answer = !value
-                    data[yIndex][xIndex] = JobData(
+                    jobData[yIndex][xIndex] = JobData(
                         value: Value(number: nil, boolean: answer, text: nil),
                         formula: nil)
                 }
                     
-                if let columnValue = column?.formula?.and {
+                if let columnValue = column.formula?.and {
                     var answer: Bool?
                     var finalAnswer = JobData(value: nil, formula: nil, error: nil)
                     for reference in columnValue {
@@ -150,10 +146,10 @@ class ViewController: UIViewController {
                             finalAnswer.error = "error"
                         }
                     }
-                    data[yIndex][xIndex] = finalAnswer
+                    jobData[yIndex][xIndex] = finalAnswer
                 }
                     
-                if let columnValue = column?.formula?.or {
+                if let columnValue = column.formula?.or {
                     var answer: Bool?
                     var finalAnswer = JobData(value: nil, formula: nil, error: nil)
                     for reference in columnValue {
@@ -169,10 +165,10 @@ class ViewController: UIViewController {
                             finalAnswer.error = "error"
                         }
                     }
-                    data[yIndex][xIndex] = finalAnswer
+                    jobData[yIndex][xIndex] = finalAnswer
                 }
                     
-                if let columnValue = column?.formula?.formulaIf {
+                if let columnValue = column.formula?.formulaIf {
                     var answer: Bool?
                     var finalAnswer = JobData(value: nil, formula: nil, error: nil)
                     for reference in columnValue {
@@ -188,10 +184,10 @@ class ViewController: UIViewController {
                         let value = referenceDictionary[columnValue[2].reference!]?.number
                         finalAnswer.value = Value(number: value, boolean: nil, text: nil)
                     }
-                    data[yIndex][xIndex] = finalAnswer
+                    jobData[yIndex][xIndex] = finalAnswer
                 }
                     
-                if let columnValue = column?.formula?.concat {
+                if let columnValue = column.formula?.concat {
                     var jobAnswer = JobData(value: nil, formula: nil, error: nil)
                     var answerValue = Value(number: nil, boolean: nil, text: nil)
                     var text = ""
@@ -200,13 +196,14 @@ class ViewController: UIViewController {
                     }
                     answerValue.text = text
                     jobAnswer.value = answerValue
-                    data[yIndex][xIndex] = jobAnswer
+                    jobData[yIndex][xIndex] = jobAnswer
                 }
                 xIndex += 1
             }
             yIndex += 1
         }
-        checkReferencesInReverseOrder(jobData: jobData, referenceDictionary: &referenceDictionary, data: &data)
+        checkReferencesInReverseOrder(jobData: &jobData, referenceDictionary: &referenceDictionary)
+        
     }
     
     func postAnswers(submitAnswerRequest: SubmitAnswerRequest, submitUrl: String ) {
@@ -227,20 +224,18 @@ class ViewController: UIViewController {
             
         }
     }
+    
     func calculateReference(reference: String,
                             referenceDictionary: [String: Value],
                             yIndex: Int, xIndex: Int,
-                            data: inout[[JobData]]
+                            jobData: inout[[JobData]]
     ) {
-        let jobDataa = JobData(
+        let answer = JobData(
             value: referenceDictionary[reference],
             formula: nil
         )
-        if data.indices.contains(yIndex) {
-            data[yIndex][xIndex] = jobDataa
-        } else {
-            data.append([])
-            data[yIndex].append(jobDataa)
+        if answer.value != nil {
+            jobData[yIndex][xIndex] = answer
         }
     }
     
@@ -255,7 +250,8 @@ class ViewController: UIViewController {
             guard let value = referenceDictionary[reference.reference]?.number else { return }
             answer += value
         }
-        data[yIndex][xIndex] = JobData(value: Value(number: answer, boolean: nil, text: nil),
+        let value = Value(number: answer, boolean: nil, text: nil)
+        data[yIndex][xIndex] = JobData(value: value,
                                        formula: nil)
     }
     
@@ -280,7 +276,7 @@ class ViewController: UIViewController {
                                  referenceDictionary: [String: Value],
                                  yIndex: Int,
                                  xIndex: Int,
-                                 data: inout[[JobData]]
+                                 jobData: inout[[JobData]]
     ) {
         var answer: Double = 1
         for reference in columnValue {
@@ -288,7 +284,7 @@ class ViewController: UIViewController {
             answer *= value
         }
         let value = Value(number: answer, boolean: nil, text: nil)
-        data[yIndex][xIndex] = JobData(value: value,
+        jobData[yIndex][xIndex] = JobData(value: value,
                                        formula: nil)
     }
     
@@ -312,7 +308,29 @@ class ViewController: UIViewController {
         data[yIndex][xIndex] = JobData(value: value,formula: nil)
     }
     
+    func calculateIsEqual(columnValue: [Reference],
+                          referenceDictionary: [String: Value],
+                          yIndex: Int,
+                          xIndex: Int,
+                          jobData: inout[[JobData]]
+   ) {
+        var firstNumber: Double = 0
+        var answer: Bool = false
+        for reference in columnValue {
+            guard let value = referenceDictionary[reference.reference]?.number else { return }
+            if firstNumber != 0  {
+                answer = firstNumber == value
+            } else {
+                firstNumber = value
+            }
+        }
+        jobData[yIndex][xIndex] = JobData(
+            value: Value(number: nil, boolean: answer, text: nil),
+            formula: nil)
+    }
+    
     func updateDictionary(jobData: [[JobData?]], referenceDictionary: inout[String: Value]){
+        let notationArray = (97...122).map({Character(UnicodeScalar($0))}).map { $0.uppercased()}
         for (Aindex, row) in jobData.enumerated() {
             for (Bindex, column) in row.enumerated() {
                 referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = column?.value
@@ -320,24 +338,19 @@ class ViewController: UIViewController {
         }
     }
     
-    func checkReferencesInReverseOrder(jobData: [[JobData?]], referenceDictionary: inout[String: Value], data: inout[[JobData]]) {
+    func checkReferencesInReverseOrder(jobData: inout[[JobData]], referenceDictionary: inout[String: Value]) {
         var yIndex = jobData.count - 1
         for row in jobData {
             var xIndex = row.count - 1
             for column in row.reversed() {
-                if let columnValue = column?.formula {
+                if let columnValue = column.formula {
                     if let reference = columnValue.reference {
-                        let jobDataa = JobData(
+                        let answer = JobData(
                             value: referenceDictionary[reference],
                             formula: nil
                         )
-                        if data.indices.contains(yIndex) {
-                            data[yIndex][xIndex] = jobDataa
-                        } else {
-                            data.append([])
-                            data[yIndex].append(jobDataa)
-                        }
-                        updateDictionary(jobData: data, referenceDictionary: &referenceDictionary)
+                        jobData[yIndex][xIndex] = answer
+                        updateDictionary(jobData: jobData, referenceDictionary: &referenceDictionary)
                     }
                 }
                 xIndex -= 1
