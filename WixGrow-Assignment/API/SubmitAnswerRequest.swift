@@ -14,5 +14,5 @@ struct SubmitAnswerRequest: Codable {
 
 struct JobResult: Codable {
     let id: String
-    var data: [[JobData]]
+    var data: [[JobData]]?
 }
