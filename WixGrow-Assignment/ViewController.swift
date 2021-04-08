@@ -18,6 +18,13 @@ class ViewController: UIViewController {
         getJobs()
     }
     
+    @IBAction func calculateButtonPressed(_ sender: Any) {
+        
+        guard let jobResponse = jobResponse else { return }
+        let submitAnswerRequest = calculationManager.calculateAnswerRequest(jobResponse: jobResponse)
+        postAnswers(submitAnswerRequest: submitAnswerRequest, submitUrl: jobResponse.submissionURL)
+    }
+    
     private func getJobs() {
         apiManager.getJobs ({ result in
             switch result {
@@ -31,13 +38,6 @@ class ViewController: UIViewController {
                 }
             }
         })
-    }
-    
-    @IBAction func calculateButtonPressed(_ sender: Any) {
-        
-        guard let jobResponse = jobResponse else { return }
-        let submitAnswerRequest = calculationManager.calculateAnswerRequest(jobResponse: jobResponse)
-        postAnswers(submitAnswerRequest: submitAnswerRequest, submitUrl: jobResponse.submissionURL)
     }
     
     private func postAnswers(submitAnswerRequest: SubmitAnswerRequest, submitUrl: String ) {

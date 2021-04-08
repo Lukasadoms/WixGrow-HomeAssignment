@@ -35,22 +35,24 @@ struct JobData: Codable {
 
 // MARK: - Value
 
-struct Value: Codable {
+class Value: Codable {
     var number: Double?
     var boolean: Bool?
     var text: String?
+    
+    init(number: Double?, boolean: Bool?, text: String?) {
+        self.number = number
+        self.boolean = boolean
+        self.text = text
+    }
 }
 
 // MARK: - Formula
 
-struct Formula: Codable {
+class Formula: Codable {
     let reference: String?
-    let sum, multiply, divide, isGreater: [Reference]?
-    let isEqual: [Reference]?
+    let sum, multiply, divide, isGreater, isEqual, and, or, formulaIf, concat: [Reference]?
     let not: Reference?
-    let and, or: [Reference]?
-    let formulaIf: [If]?
-    let concat: [Concat]?
 
     enum CodingKeys: String, CodingKey {
         case reference, sum, multiply, divide
@@ -65,33 +67,7 @@ struct Formula: Codable {
 // MARK: - Reference
 
 struct Reference: Codable {
-    let string: String
-    
-    enum CodingKeys: String, CodingKey {
-        case string = "reference"
-    }
-}
-
-// MARK: - Concat
-
-struct Concat: Codable {
-    let value: ConcatValue
-}
-
-// MARK: - ConcatValue
-
-struct ConcatValue: Codable {
-    let text: String
-}
-
-// MARK: - If
-
-struct If: Codable {
-    let isGreater: [Reference]?
     let reference: String?
-
-    enum CodingKeys: String, CodingKey {
-        case isGreater = "is_greater"
-        case reference
-    }
+    let value: Value?
+    let formula: Formula?
 }
