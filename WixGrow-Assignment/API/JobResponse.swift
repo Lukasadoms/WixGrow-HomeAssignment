@@ -35,16 +35,10 @@ struct JobData: Codable {
 
 // MARK: - Value
 
-class Value: Codable {
+struct Value: Codable {
     var number: Double?
     var boolean: Bool?
     var text: String?
-    
-    init(number: Double?, boolean: Bool?, text: String?) {
-        self.number = number
-        self.boolean = boolean
-        self.text = text
-    }
 }
 
 // MARK: - Formula
@@ -70,4 +64,10 @@ struct Reference: Codable {
     let reference: String?
     let value: Value?
     let formula: Formula?
+    let isGreater: [Reference]?
+    
+    enum CodingKeys: String, CodingKey {
+        case reference, value, formula
+        case isGreater = "is_greater"
+    }
 }

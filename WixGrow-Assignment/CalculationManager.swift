@@ -9,7 +9,7 @@ import Foundation
 
 class CalculationManager {
     
-    func calculateAnswerRequest(jobResponse: JobResponse) -> SubmitAnswerRequest {
+    func makeAnswerRequest(jobResponse: JobResponse) -> SubmitAnswerRequest {
         var submitAnswerRequest = SubmitAnswerRequest(results: [])
         for job in jobResponse.jobs {
             let result = calculateJob(job: job)
@@ -24,38 +24,39 @@ class CalculationManager {
         var yIndex = 0
         for row in jobAnswer.data {
             var xIndex = 0
-            for column in row {
+            for cell in row {
                 updateReferenceDictionary(jobData: jobAnswer.data, referenceDictionary: &referenceDictionary)
-                
-                let answer = calculateAnswer(column: column, referenceDictionary: referenceDictionary)
+                checkReferencesInReverseOrder(jobData: &jobAnswer.data, referenceDictionary: &referenceDictionary)
+                let answer = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
                 if let answer = answer {
                     jobAnswer.data[yIndex][xIndex] = answer
                 } else {
-                    jobAnswer.data[yIndex][xIndex] = JobData(value: nil, formula: nil, error: "error unkown value or formula")
+                    jobAnswer.data[yIndex][xIndex] = JobData(value: nil,
+                                                             formula: nil,
+                                                             error: "error unknown value, reference or formula"
+                    )
                 }
-                checkReferencesInReverseOrder(jobData: &jobAnswer.data, referenceDictionary: &referenceDictionary)
                 xIndex += 1
             }
             yIndex += 1
         }
-        
         return jobAnswer
     }
 
-    func calculateAnswer(column: JobData, referenceDictionary: [String: Value]) -> JobData? {
-        if (column.formula?.reference) != nil {
-            return calculateReference(value: column.formula! , referenceDictionary: referenceDictionary)
+    func calculateAnswer(cell: JobData, referenceDictionary: [String: Value]) -> JobData? {
+        if cell.value != nil {
+            return cell
         }
-        if column.value != nil {
-            return column
-        }
-        if let columnValue = column.formula {
+        if let columnValue = cell.formula {
             return calculateFormula(formula: columnValue, referenceDictionary: referenceDictionary)
         }
         return nil
     }
     
     func calculateFormula(formula: Formula, referenceDictionary: [String: Value]) -> JobData? {
+        if let formula = formula.reference {
+            return calculateReference(value: formula , referenceDictionary: referenceDictionary)
+        }
         if let formula = formula.sum {
             return calculateSum(formula: formula, referenceDictionary: referenceDictionary)
         }
@@ -66,9 +67,7 @@ class CalculationManager {
             return calculateDivision(formula: columnValue, referenceDictionary: referenceDictionary)
         }
         if let columnValue = formula.isGreater {
-            let result = calculateIsGreater(formula: columnValue, referenceDictionary: referenceDictionary)
-            let answer = Value(number: nil, boolean: result, text: nil)
-            return JobData(value: answer, formula: nil)
+            return calculateIsGreater(formula: columnValue, referenceDictionary: referenceDictionary)
         }
         if let columnValue = formula.isEqual {
             return calculateIsEqual(formula: columnValue, referenceDictionary: referenceDictionary)
@@ -93,17 +92,12 @@ class CalculationManager {
     
     // MARK: - Calculate Reference
     
-    private func calculateReference(value: Formula, referenceDictionary: [String: Value]) -> JobData? {
-        guard let string = value.reference else { return nil }
+    private func calculateReference(value: String, referenceDictionary: [String: Value]) -> JobData? {
         let answer = JobData(
-            value: referenceDictionary[string],
+            value: referenceDictionary[value],
             formula: nil
         )
-        guard answer.value != nil else { return JobData(
-            value: nil,
-            formula: value,
-            error: nil)
-            }
+        guard answer.value != nil else { return nil }
         return answer
     }
     
@@ -117,7 +111,8 @@ class CalculationManager {
                 answer += value
             }
             if let reference = reference.formula {
-                guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.number else { return nil }
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.number else { return nil }
                 answer += value
             }
             if let value = reference.value?.number {
@@ -130,7 +125,7 @@ class CalculationManager {
     
     // MARK: - Calculate Is Greater
     
-    private func calculateIsGreater(formula: [Reference], referenceDictionary: [String: Value]) -> Bool? {
+    private func calculateIsGreater(formula: [Reference], referenceDictionary: [String: Value]) -> JobData? {
         var firstNumber: Double?
         var answer: Bool?
         for reference in formula {
@@ -143,7 +138,8 @@ class CalculationManager {
                 }
             }
             if let reference = reference.formula {
-                guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.number else { return nil }
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.number else { return nil }
                 if let first = firstNumber {
                     answer = first > value
                 } else {
@@ -159,7 +155,8 @@ class CalculationManager {
                 }
             }
         }
-        return answer
+        let value = Value(number: nil, boolean: answer, text: nil)
+        return JobData(value: value, formula: nil)
     }
     
     // MARK: - Calculate Multiplication
@@ -172,7 +169,8 @@ class CalculationManager {
                 answer *= value
             }
             if let reference = reference.formula {
-                guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.number else { return nil }
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.number else { return nil }
                 answer *= value
             }
             if let reference = reference.value {
@@ -199,7 +197,8 @@ class CalculationManager {
                 }
             }
             if let reference = reference.formula {
-                guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.number else { return nil }
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.number else { return nil }
                 if let firstNumber = firstNumber  {
                     answer = firstNumber/value
                 } else {
@@ -222,20 +221,21 @@ class CalculationManager {
     // MARK: - Calculate is Equal
     
     private func calculateIsEqual(formula: [Reference], referenceDictionary: [String: Value]) -> JobData? {
-        var firstNumber: Double = 0
+        var firstNumber: Double?
         var answer: Bool = false
         for reference in formula {
             if let reference = reference.reference {
                 guard let value = referenceDictionary[reference]?.number else { return nil }
-                if firstNumber != 0  {
+                if let firstNumber = firstNumber  {
                     answer = firstNumber == value
                 } else {
                     firstNumber = value
                 }
             }
             if let reference = reference.formula {
-                guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.number else { return nil }
-                if firstNumber != 0  {
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.number else { return nil }
+                if let firstNumber = firstNumber  {
                     answer = firstNumber == value
                 } else {
                     firstNumber = value
@@ -243,7 +243,7 @@ class CalculationManager {
             }
             if let reference = reference.value {
                 guard let value = reference.number  else { return nil }
-                if firstNumber != 0  {
+                if let firstNumber = firstNumber  {
                     answer = firstNumber == value
                 } else {
                     firstNumber = value
@@ -263,7 +263,8 @@ class CalculationManager {
             answer = !value
         }
         if let reference = formula.formula {
-            guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.boolean else { return nil }
+            let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.boolean else { return nil }
             answer = !value
         }
         if let reference = formula.value {
@@ -277,34 +278,35 @@ class CalculationManager {
     // MARK: - Calculate And
     
     private func calculateAnd(formula: [Reference], referenceDictionary: [String: Value]) -> JobData? {
-        var answer: Bool?
+        var firstAnswer: Bool?
         var finalAnswer = JobData(value: nil, formula: nil, error: nil)
         for reference in formula {
             if let reference = reference.reference {
                 guard let value = referenceDictionary[reference]?.boolean else { return nil }
-                if let answerr = answer {
-                    answer = answerr && value
+                if let firstAnswer = firstAnswer {
+                    let answer = firstAnswer && value
                     finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
                 } else {
-                    answer = value
+                    firstAnswer = value
                 }
             }
             if let reference = reference.formula {
-                guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.boolean else { return nil }
-                if let answerr = answer {
-                    answer = answerr && value
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.boolean else { return nil }
+                if let firstAnswer = firstAnswer {
+                    let answer = firstAnswer && value
                     finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
                 } else {
-                    answer = value
+                    firstAnswer = value
                 }
             }
             if let reference = reference.value {
                 guard let value = reference.boolean  else { return nil }
-                if let answerr = answer {
-                    answer = answerr && value
+                if let firstAnswer = firstAnswer {
+                    let answer = firstAnswer && value
                     finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
                 } else {
-                    answer = value
+                    firstAnswer = value
                 }
             }
         }
@@ -314,34 +316,35 @@ class CalculationManager {
     // MARK: - Calculate Or
     
     private func calculateOr(formula: [Reference], referenceDictionary: [String: Value]) -> JobData? {
-        var answer: Bool?
+        var firstAnswer: Bool?
         var finalAnswer = JobData(value: nil, formula: nil, error: nil)
         for reference in formula {
             if let reference = reference.reference {
                 guard let value = referenceDictionary[reference]?.boolean else { return nil }
-                if let answerr = answer {
-                    answer = answerr || value
+                if let firstAnswer = firstAnswer {
+                    let answer = firstAnswer || value
                     finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
                 } else {
-                    answer = value
+                    firstAnswer = value
                 }
             }
             if let reference = reference.formula {
-                guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.boolean else { return nil }
-                if let answerr = answer {
-                    answer = answerr || value
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.boolean else { return nil }
+                if let firstAnswer = firstAnswer {
+                    let answer = firstAnswer || value
                     finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
                 } else {
-                    answer = value
+                    firstAnswer = value
                 }
             }
             if let reference = reference.value {
                 guard let value = reference.boolean  else { return nil }
-                if let answerr = answer {
-                    answer = answerr || value
+                if let firstAnswer = firstAnswer {
+                    let answer = firstAnswer || value
                     finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
                 } else {
-                    answer = value
+                    firstAnswer = value
                 }
             }
         }
@@ -352,35 +355,24 @@ class CalculationManager {
     
     private func calculateIf(formula: [Reference], referenceDictionary: [String: Value]) -> JobData? {
         var finalAnswer = JobData(value: nil, formula: nil, error: nil)
-        if let reference = formula[0].reference {
-            guard let value = referenceDictionary[reference]?.boolean else { return nil }
-            if value {
-                guard let value = referenceDictionary[formula[1].reference!] else { return nil }
-                finalAnswer.value = value
-            } else {
-                guard let value = referenceDictionary[formula[2].reference!] else { return nil }
-                finalAnswer.value = value
+        var answer: Bool?
+        for reference in formula {
+            if let isGreater = reference.isGreater {
+                answer = calculateIsGreater(formula: isGreater, referenceDictionary: referenceDictionary)?.value?.boolean
             }
         }
-        if let reference = formula[0].formula {
-            guard let value = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)?.value?.boolean else { return nil }
-            if value {
-                guard let value = referenceDictionary[formula[1].reference!] else { return nil }
-                finalAnswer.value = value
-            } else {
-                guard let value = referenceDictionary[formula[2].reference!] else { return nil }
-                finalAnswer.value = value
-            }
+        if answer == true {
+            let value = referenceDictionary[formula[1].reference!]?.number
+            finalAnswer.value = Value(number: value, boolean: nil, text: nil)
         }
-        if let reference = formula[0].value {
-            guard let value = reference.boolean else { return nil }
-            if value {
-                guard let value = referenceDictionary[formula[1].reference!] else { return nil }
-                finalAnswer.value = value
-            } else {
-                guard let value = referenceDictionary[formula[2].reference!] else { return nil }
-                finalAnswer.value = value
-            }
+        
+        if answer == false {
+            let value = referenceDictionary[formula[2].reference!]?.number
+            finalAnswer.value = Value(number: value, boolean: nil, text: nil)
+        }
+        
+        if answer == nil {
+            return nil
         }
         return finalAnswer
     }
@@ -388,13 +380,25 @@ class CalculationManager {
     // MARK: - Calculate Concat
     
     private func calculateConcat(formula: [Reference], referenceDictionary: [String: Value]) -> JobData? {
-        var jobAnswer = JobData(value: nil, formula: nil, error: nil)
-        let answerValue = Value(number: nil, boolean: nil, text: nil)
         var text = ""
         for reference in formula {
-            text += (reference.value?.text)!
+            if let reference = reference.reference {
+                guard let value = referenceDictionary[reference]?.text else { return nil }
+                text += value
+            }
+            if let reference = reference.formula {
+                let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
+                guard let value = calculation?.value?.text else { return nil }
+                text += value
+            }
+            if let reference = reference.value {
+                guard let value = reference.text  else { return nil }
+                text += value
+            }
         }
+        var answerValue = Value(number: nil, boolean: nil, text: nil)
         answerValue.text = text
+        var jobAnswer = JobData(value: nil, formula: nil, error: nil)
         jobAnswer.value = answerValue
         return jobAnswer
     }
@@ -403,7 +407,7 @@ class CalculationManager {
     
     private func checkReferencesInReverseOrder(jobData: inout[[JobData]], referenceDictionary: inout[String: Value]) {
         var yIndex = jobData.count - 1
-        for row in jobData {
+        for row in jobData.reversed() {
             var xIndex = row.count - 1
             for column in row.reversed() {
                 if let columnValue = column.formula?.reference {
@@ -428,7 +432,9 @@ class CalculationManager {
         let notationArray = (97...122).map({Character(UnicodeScalar($0))}).map { $0.uppercased()}
         for (Aindex, row) in jobData.enumerated() {
             for (Bindex, column) in row.enumerated() {
-                referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = column?.value
+                if let value = column?.value {
+                    referenceDictionary["\(notationArray[Bindex])\(Aindex+1)"] = value
+                }
             }
         }
     }

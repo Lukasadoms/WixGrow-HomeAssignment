@@ -22,21 +22,17 @@ struct APIManager {
     
     func getJobs(_ completion: @escaping (Result<JobResponse, APIError>) -> Void) {
 
-        guard let url = APIEndpoint.jobs.url
-        else {
+        guard let url = APIEndpoint.jobs.url else {
             completion(.failure(.failedURLCreation))
             return
         }
-
         session.dataTask(with: url) { data, response, error in
-            guard let data = data
-            else {
-                completion(.failure(.failedRequest))
+            guard let data = data else {
+                completion(.failure(.failedResponse))
                 return
             }
 
-            guard let jobsResponse = try? JSONDecoder().decode(JobResponse.self, from: data)
-            else {
+            guard let jobsResponse = try? JSONDecoder().decode(JobResponse.self, from: data) else {
                 completion(.failure(.unexpectedDataFormat))
                 return
             }
@@ -51,15 +47,13 @@ struct APIManager {
         submitUrl: String,
         _ completion: @escaping (Result<PostAnswersResponse, APIError>) -> Void
     ) {
-        guard let url = URL(string: submitUrl)
-        else {
+        guard let url = URL(string: submitUrl) else {
             completion(.failure(.failedURLCreation))
             return
         }
         
-        guard let requestJSON = try? JSONEncoder().encode(submitAnswerRequest)
-        else {
-            completion(.failure(.unexpectedDataFormat))
+        guard let requestJSON = try? JSONEncoder().encode(submitAnswerRequest) else {
+            completion(.failure(.failedRequest))
             return
         }
 
@@ -69,14 +63,12 @@ struct APIManager {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         session.dataTask(with: request) { data, response, error in
-            guard let data = data
-            else {
-                completion(.failure(.failedRequest))
+            guard let data = data else {
+                completion(.failure(.failedResponse))
                 return
             }
 
-            guard let postResponse = try? JSONDecoder().decode(PostAnswersResponse.self, from: data)
-            else {
+            guard let postResponse = try? JSONDecoder().decode(PostAnswersResponse.self, from: data) else {
                 completion(.failure(.unexpectedDataFormat))
                 return
             }

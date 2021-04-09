@@ -19,9 +19,8 @@ class ViewController: UIViewController {
     }
     
     @IBAction func calculateButtonPressed(_ sender: Any) {
-        
         guard let jobResponse = jobResponse else { return }
-        let submitAnswerRequest = calculationManager.calculateAnswerRequest(jobResponse: jobResponse)
+        let submitAnswerRequest = calculationManager.makeAnswerRequest(jobResponse: jobResponse)
         postAnswers(submitAnswerRequest: submitAnswerRequest, submitUrl: jobResponse.submissionURL)
     }
     
