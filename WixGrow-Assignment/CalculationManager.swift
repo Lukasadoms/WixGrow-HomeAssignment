@@ -34,7 +34,7 @@ class CalculationManager {
                     let cell = Cell(
                         value: nil,
                         formula: nil,
-                        error: "error unknown value, reference or formula")
+                        error: "error calculating value")
                     jobAnswer.data[yIndex][xIndex] = cell
                 }
                 xIndex += 1
@@ -55,40 +55,39 @@ class CalculationManager {
     }
     
     func calculateFormula(formula: Formula, referenceDictionary: [String: Value]) -> Cell? {
-            if let formula = formula.reference {
-                return calculateReference(value: formula , referenceDictionary: referenceDictionary)
-            }
-            if let formula = formula.sum {
-                return calculateSum(formula: formula, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.multiply {
-                return calculateMultiplication(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.divide {
-                return calculateDivision(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.isGreater {
-                return calculateIsGreater(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.isEqual {
-                return calculateIsEqual(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.not {
-                return calculateNot(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.and {
-                return calculateAnd(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.or {
-                return calculateOr(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.formulaIf {
-                return calculateIf(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-            if let columnValue = formula.concat {
-                return calculateConcat(formula: columnValue, referenceDictionary: referenceDictionary)
-            }
-        
+        if let formula = formula.reference {
+            return calculateReference(value: formula , referenceDictionary: referenceDictionary)
+        }
+        if let formula = formula.sum {
+            return calculateSum(formula: formula, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.multiply {
+            return calculateMultiplication(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.divide {
+            return calculateDivision(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.isGreater {
+            return calculateIsGreater(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.isEqual {
+            return calculateIsEqual(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.not {
+            return calculateNot(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.and {
+            return calculateAnd(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.or {
+            return calculateOr(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.formulaIf {
+            return calculateIf(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
+        if let columnValue = formula.concat {
+            return calculateConcat(formula: columnValue, referenceDictionary: referenceDictionary)
+        }
         return nil
     }
     // MARK: - Calculate Reference
@@ -193,8 +192,8 @@ class CalculationManager {
         var answer: Bool?
         let cell = Cell(value: formula.value, formula: formula, error: nil)
         let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
-        guard let valuee = calculation?.value?.boolean else { return nil }
-        answer = !valuee
+        guard let calculatedValue = calculation?.value?.boolean else { return nil }
+        answer = !calculatedValue
         let value = Value(number: nil, boolean: answer, text: nil)
         return Cell(value: value, formula: nil)
     }

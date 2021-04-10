@@ -43,7 +43,7 @@ struct Value: Codable {
 
 // MARK: - Formula
 
-class Formula: Codable, Loopable {
+class Formula: Codable {
     let reference: String?
     let sum, multiply, divide, isGreater, isEqual, and, or, formulaIf, concat: [Formula]?
     let not: Formula?

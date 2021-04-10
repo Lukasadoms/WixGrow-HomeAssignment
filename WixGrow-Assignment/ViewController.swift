@@ -53,7 +53,6 @@ class ViewController: UIViewController {
                     if let error = response.error {
                         self.showAlert(error: error)
                     }
-                    
                 }
             case .failure(let error):
                 DispatchQueue.main.async {

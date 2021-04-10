@@ -74,11 +74,11 @@
 				C98E471B2614B916006B75A4 /* AppDelegate.swift */,
 				C98E471D2614B916006B75A4 /* SceneDelegate.swift */,
 				C98E471F2614B916006B75A4 /* ViewController.swift */,
+				C98E4753261B2BD8006B75A4 /* CalculationManager.swift */,
 				C98E47212614B916006B75A4 /* Main.storyboard */,
 				C98E47242614B917006B75A4 /* Assets.xcassets */,
 				C98E47262614B917006B75A4 /* LaunchScreen.storyboard */,
 				C98E47292614B917006B75A4 /* Info.plist */,
-				C98E4753261B2BD8006B75A4 /* CalculationManager.swift */,
 			);
 			path = "WixGrow-Assignment";
 			sourceTree = "<group>";
