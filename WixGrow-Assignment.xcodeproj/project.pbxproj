@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C936FCB82621812C003ECD77 /* extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C936FCB72621812C003ECD77 /* extensions.swift */; };
 		C98E471C2614B916006B75A4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E471B2614B916006B75A4 /* AppDelegate.swift */; };
 		C98E471E2614B916006B75A4 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E471D2614B916006B75A4 /* SceneDelegate.swift */; };
 		C98E47202614B916006B75A4 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E471F2614B916006B75A4 /* ViewController.swift */; };
@@ -24,7 +23,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C936FCB72621812C003ECD77 /* extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions.swift; sourceTree = "<group>"; };
 		C98E47182614B916006B75A4 /* WixGrow-Assignment.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WixGrow-Assignment.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C98E471B2614B916006B75A4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C98E471D2614B916006B75A4 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -53,6 +51,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C936FCBF2621BB28003ECD77 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C98E47292614B917006B75A4 /* Info.plist */,
+				C98E47262614B917006B75A4 /* LaunchScreen.storyboard */,
+				C98E47242614B917006B75A4 /* Assets.xcassets */,
+				C98E471D2614B916006B75A4 /* SceneDelegate.swift */,
+				C98E471B2614B916006B75A4 /* AppDelegate.swift */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C936FCC12621BB91003ECD77 /* RequestsResponses */ = {
+			isa = PBXGroup;
+			children = (
+				C98E474F261866FA006B75A4 /* PostAnswersResponse.swift */,
+				C98E474A26176941006B75A4 /* SubmitAnswerRequest.swift */,
+				C98E47372614BAD6006B75A4 /* JobResponse.swift */,
+			);
+			path = RequestsResponses;
+			sourceTree = "<group>";
+		};
 		C98E470F2614B916006B75A4 = {
 			isa = PBXGroup;
 			children = (
@@ -72,16 +92,11 @@
 		C98E471A2614B916006B75A4 /* WixGrow-Assignment */ = {
 			isa = PBXGroup;
 			children = (
+				C936FCBF2621BB28003ECD77 /* Resources */,
 				C98E47302614B94C006B75A4 /* API */,
-				C98E471B2614B916006B75A4 /* AppDelegate.swift */,
-				C98E471D2614B916006B75A4 /* SceneDelegate.swift */,
 				C98E471F2614B916006B75A4 /* ViewController.swift */,
-				C98E47212614B916006B75A4 /* Main.storyboard */,
-				C98E47242614B917006B75A4 /* Assets.xcassets */,
-				C98E47262614B917006B75A4 /* LaunchScreen.storyboard */,
-				C98E47292614B917006B75A4 /* Info.plist */,
 				C98E4753261B2BD8006B75A4 /* CalculationManager.swift */,
-				C936FCB72621812C003ECD77 /* extensions.swift */,
+				C98E47212614B916006B75A4 /* Main.storyboard */,
 			);
 			path = "WixGrow-Assignment";
 			sourceTree = "<group>";
@@ -89,12 +104,10 @@
 		C98E47302614B94C006B75A4 /* API */ = {
 			isa = PBXGroup;
 			children = (
+				C936FCC12621BB91003ECD77 /* RequestsResponses */,
 				C98E47312614B95A006B75A4 /* Endpoint.swift */,
 				C98E47342614BAA9006B75A4 /* APIManager.swift */,
-				C98E47372614BAD6006B75A4 /* JobResponse.swift */,
 				C98E473B2614C464006B75A4 /* APIError.swift */,
-				C98E474A26176941006B75A4 /* SubmitAnswerRequest.swift */,
-				C98E474F261866FA006B75A4 /* PostAnswersResponse.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -172,7 +185,6 @@
 				C98E47202614B916006B75A4 /* ViewController.swift in Sources */,
 				C98E4754261B2BD8006B75A4 /* CalculationManager.swift in Sources */,
 				C98E471C2614B916006B75A4 /* AppDelegate.swift in Sources */,
-				C936FCB82621812C003ECD77 /* extensions.swift in Sources */,
 				C98E474B26176941006B75A4 /* SubmitAnswerRequest.swift in Sources */,
 				C98E47382614BAD6006B75A4 /* JobResponse.swift in Sources */,
 				C98E4750261866FA006B75A4 /* PostAnswersResponse.swift in Sources */,
