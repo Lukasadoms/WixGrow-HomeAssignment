@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C936FCB82621812C003ECD77 /* extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C936FCB72621812C003ECD77 /* extensions.swift */; };
 		C98E471C2614B916006B75A4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E471B2614B916006B75A4 /* AppDelegate.swift */; };
 		C98E471E2614B916006B75A4 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E471D2614B916006B75A4 /* SceneDelegate.swift */; };
 		C98E47202614B916006B75A4 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98E471F2614B916006B75A4 /* ViewController.swift */; };
@@ -24,7 +23,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C936FCB72621812C003ECD77 /* extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions.swift; sourceTree = "<group>"; };
 		C98E47182614B916006B75A4 /* WixGrow-Assignment.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WixGrow-Assignment.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C98E471B2614B916006B75A4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C98E471D2614B916006B75A4 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -81,7 +79,6 @@
 				C98E47262614B917006B75A4 /* LaunchScreen.storyboard */,
 				C98E47292614B917006B75A4 /* Info.plist */,
 				C98E4753261B2BD8006B75A4 /* CalculationManager.swift */,
-				C936FCB72621812C003ECD77 /* extensions.swift */,
 			);
 			path = "WixGrow-Assignment";
 			sourceTree = "<group>";
@@ -172,7 +169,6 @@
 				C98E47202614B916006B75A4 /* ViewController.swift in Sources */,
 				C98E4754261B2BD8006B75A4 /* CalculationManager.swift in Sources */,
 				C98E471C2614B916006B75A4 /* AppDelegate.swift in Sources */,
-				C936FCB82621812C003ECD77 /* extensions.swift in Sources */,
 				C98E474B26176941006B75A4 /* SubmitAnswerRequest.swift in Sources */,
 				C98E47382614BAD6006B75A4 /* JobResponse.swift in Sources */,
 				C98E4750261866FA006B75A4 /* PostAnswersResponse.swift in Sources */,
