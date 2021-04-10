@@ -31,10 +31,11 @@ class CalculationManager {
                 if let answer = answer {
                     jobAnswer.data[yIndex][xIndex] = answer
                 } else {
-                    jobAnswer.data[yIndex][xIndex] = Cell(value: nil,
-                                                             formula: nil,
-                                                             error: "error unknown value, reference or formula"
-                    )
+                    let cell = Cell(
+                        value: nil,
+                        formula: nil,
+                        error: "error unknown value, reference or formula")
+                    jobAnswer.data[yIndex][xIndex] = cell
                 }
                 xIndex += 1
             }
@@ -106,22 +107,10 @@ class CalculationManager {
     private func calculateSum(formula: [Formula], referenceDictionary: [String: Value])  -> Cell? {
         var answer: Double = 0
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.number else { return nil }
-                answer += value
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    var formulaArray: [Formula] = []
-                    formulaArray.append(reference)
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.number else { return nil }
-                    answer += value
-                }
-            }
-            if let value = reference.value?.number {
-                answer += value
-            }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.number else { return nil }
+            answer += value
         }
         let value = Value(number: answer, boolean: nil, text: nil)
         return Cell(value: value, formula: nil)
@@ -133,35 +122,13 @@ class CalculationManager {
         var firstNumber: Double?
         var answer: Bool?
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.number else { return nil }
-                if let first = firstNumber {
-                    answer = first > value
-                } else {
-                    firstNumber = value
-                }
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    var formulaArray: [Formula] = []
-                    formulaArray.append(reference)
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.number else { return nil }
-                    if let first = firstNumber {
-                        answer = first > value
-                    } else {
-                        firstNumber = value
-                    }
-                }
-            }
-            
-            if let reference = reference.value {
-                guard let value = reference.number  else { return nil }
-                if let first = firstNumber {
-                    answer = first > value
-                } else {
-                    firstNumber = value
-                }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.number else { return nil }
+            if let first = firstNumber {
+                answer = first > value
+            } else {
+                firstNumber = value
             }
         }
         let value = Value(number: nil, boolean: answer, text: nil)
@@ -173,21 +140,10 @@ class CalculationManager {
     private func calculateMultiplication(formula: [Formula], referenceDictionary: [String: Value]) -> Cell? {
         var answer: Double = 1
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.number else { return nil }
-                answer *= value
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiply" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.number else { return nil }
-                    answer *= value
-                }
-            }
-            if let reference = reference.value {
-                guard let value = reference.number  else { return nil }
-                answer *= value
-            }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.number else { return nil }
+            answer *= value
         }
         let value = Value(number: answer, boolean: nil, text: nil)
         return Cell(value: value, formula: nil)
@@ -199,33 +155,13 @@ class CalculationManager {
         var firstNumber: Double?
         var answer: Double?
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.number else { return nil }
-                if let firstNumber = firstNumber  {
-                    answer = firstNumber/value
-                } else {
-                    firstNumber = value
-                }
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    guard let formula = value as? [Formula] else { break }
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.number else { return nil }
-                    if let firstNumber = firstNumber  {
-                        answer = firstNumber/value
-                    } else {
-                        firstNumber = value
-                    }
-                }
-            }
-            if let reference = reference.value {
-                guard let value = reference.number  else { return nil }
-                if let firstNumber = firstNumber  {
-                    answer = firstNumber/value
-                } else {
-                    firstNumber = value
-                }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.number else { return nil }
+            if let firstNumber = firstNumber  {
+                answer = firstNumber/value
+            } else {
+                firstNumber = value
             }
         }
         let value = Value(number: answer, boolean: nil, text: nil)
@@ -238,33 +174,13 @@ class CalculationManager {
         var firstNumber: Double?
         var answer: Bool = false
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.number else { return nil }
-                if let firstNumber = firstNumber  {
-                    answer = firstNumber == value
-                } else {
-                    firstNumber = value
-                }
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    guard let formula = value as? [Formula] else { break }
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.number else { return nil }
-                    if let firstNumber = firstNumber  {
-                        answer = firstNumber == value
-                    } else {
-                        firstNumber = value
-                    }
-                }
-            }
-            if let reference = reference.value {
-                guard let value = reference.number  else { return nil }
-                if let firstNumber = firstNumber  {
-                    answer = firstNumber == value
-                } else {
-                    firstNumber = value
-                }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.number else { return nil }
+            if let firstNumber = firstNumber  {
+                answer = firstNumber == value
+            } else {
+                firstNumber = value
             }
         }
         let value = Value(number: nil, boolean: answer, text: nil)
@@ -273,26 +189,12 @@ class CalculationManager {
 
     // MARK: - Calculate Not
 
-    private func calculateNot(formula: [Formula], referenceDictionary: [String: Value]) -> Cell? {
+    private func calculateNot(formula: Formula, referenceDictionary: [String: Value]) -> Cell? {
         var answer: Bool?
-        for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.boolean else { return nil }
-                answer = !value
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    let calculation = calculateFormula(formula: formula, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.boolean else { return nil }
-                    answer = !value
-                }
-            }
-            if let reference = reference.value {
-                guard let value = reference.boolean else { return nil }
-                answer = !value
-            }
-        }
-        
+        let cell = Cell(value: formula.value, formula: formula, error: nil)
+        let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+        guard let valuee = calculation?.value?.boolean else { return nil }
+        answer = !valuee
         let value = Value(number: nil, boolean: answer, text: nil)
         return Cell(value: value, formula: nil)
     }
@@ -303,36 +205,14 @@ class CalculationManager {
         var firstAnswer: Bool?
         var finalAnswer = Cell(value: nil, formula: nil, error: nil)
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.boolean else { return nil }
-                if let firstAnswer = firstAnswer {
-                    let answer = firstAnswer && value
-                    finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
-                } else {
-                    firstAnswer = value
-                }
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.boolean else { return nil }
-                    if let firstAnswer = firstAnswer {
-                        let answer = firstAnswer && value
-                        finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
-                    } else {
-                        firstAnswer = value
-                    }
-                }
-            }
-            if let reference = reference.value {
-                guard let value = reference.boolean  else { return nil }
-                if let firstAnswer = firstAnswer {
-                    let answer = firstAnswer && value
-                    finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
-                } else {
-                    firstAnswer = value
-                }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.boolean else { return nil }
+            if let firstAnswer = firstAnswer {
+                let answer = firstAnswer && value
+                finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
+            } else {
+                firstAnswer = value
             }
         }
         return finalAnswer
@@ -344,36 +224,14 @@ class CalculationManager {
         var firstAnswer: Bool?
         var finalAnswer = Cell(value: nil, formula: nil, error: nil)
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.boolean else { return nil }
-                if let firstAnswer = firstAnswer {
-                    let answer = firstAnswer || value
-                    finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
-                } else {
-                    firstAnswer = value
-                }
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    guard let formula = value as? [Formula] else { break }
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.boolean else { return nil }
-                    if let firstAnswer = firstAnswer {
-                        let answer = firstAnswer || value
-                        finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
-                    } else {
-                        firstAnswer = value
-                    }
-                }
-            }
-            if let reference = reference.value {
-                guard let value = reference.boolean  else { return nil }
-                if let firstAnswer = firstAnswer {
-                    let answer = firstAnswer || value
-                    finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
-                } else {
-                    firstAnswer = value
-                }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.boolean else { return nil }
+            if let firstAnswer = firstAnswer {
+                let answer = firstAnswer || value
+                finalAnswer.value = Value(number: nil, boolean: answer, text: nil)
+            } else {
+                firstAnswer = value
             }
         }
         return finalAnswer
@@ -384,22 +242,20 @@ class CalculationManager {
     private func calculateIf(formula: [Formula], referenceDictionary: [String: Value]) -> Cell? {
         var finalAnswer = Cell(value: nil, formula: nil, error: nil)
         var answer: Bool?
-        for reference in formula {
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.boolean else { return nil }
-                    answer = value
-                }
-            }
-        }
+        let cell = Cell(value: nil, formula: formula[0], error: nil)
+        let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+        guard let value = calculation?.value?.boolean else { return nil }
+        answer = value
+        
         if answer == true {
-            let value = referenceDictionary[formula[1].reference!]?.number
+            guard let reference = formula[1].reference else { return nil }
+            let value = referenceDictionary[reference]?.number
             finalAnswer.value = Value(number: value, boolean: nil, text: nil)
         }
 
         if answer == false {
-            let value = referenceDictionary[formula[2].reference!]?.number
+            guard let reference = formula[2].reference else { return nil }
+            let value = referenceDictionary[reference]?.number
             finalAnswer.value = Value(number: value, boolean: nil, text: nil)
         }
         return finalAnswer
@@ -410,21 +266,10 @@ class CalculationManager {
     private func calculateConcat(formula: [Formula], referenceDictionary: [String: Value]) -> Cell? {
         var text = ""
         for reference in formula {
-            if let reference = reference.reference {
-                guard let value = referenceDictionary[reference]?.text else { return nil }
-                text += value
-            }
-            for (key, value) in reference.allProperties() {
-                if key == "sum" || key == "and" || key == "or" || key == "isGreater" || key == "multiplication" || key == "division" || key == "not" || key == "formulaIf" || key == "concat" {
-                    let calculation = calculateFormula(formula: reference, referenceDictionary: referenceDictionary)
-                    guard let value = calculation?.value?.text else { return nil }
-                    text += value
-                }
-            }
-            if let reference = reference.value {
-                guard let value = reference.text  else { return nil }
-                text += value
-            }
+            let cell = Cell(value: reference.value, formula: reference, error: nil)
+            let calculation = calculateAnswer(cell: cell, referenceDictionary: referenceDictionary)
+            guard let value = calculation?.value?.text else { return nil }
+            text += value
         }
         var answerValue = Value(number: nil, boolean: nil, text: nil)
         answerValue.text = text

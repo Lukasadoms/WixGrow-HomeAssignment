@@ -45,7 +45,8 @@ struct Value: Codable {
 
 class Formula: Codable, Loopable {
     let reference: String?
-    let sum, multiply, divide, isGreater, isEqual, and, or, formulaIf, concat, not: [Formula]?
+    let sum, multiply, divide, isGreater, isEqual, and, or, formulaIf, concat: [Formula]?
+    let not: Formula?
     let value: Value?
 
     enum CodingKeys: String, CodingKey {
