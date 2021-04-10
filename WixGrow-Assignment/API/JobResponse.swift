@@ -22,12 +22,12 @@ struct JobResponse: Codable {
 
 struct Job: Codable {
     let id: String
-    var data: [[JobData]]
+    var data: [[Cell]]
 }
 
 // MARK: - JobData
 
-struct JobData: Codable {
+struct Cell: Codable {
     var value: Value?
     let formula: Formula?
     var error: String?
@@ -43,10 +43,10 @@ struct Value: Codable {
 
 // MARK: - Formula
 
-class Formula: Codable {
+class Formula: Codable, Loopable {
     let reference: String?
-    let sum, multiply, divide, isGreater, isEqual, and, or, formulaIf, concat: [Reference]?
-    let not: Reference?
+    let sum, multiply, divide, isGreater, isEqual, and, or, formulaIf, concat, not: [Formula]?
+    let value: Value?
 
     enum CodingKeys: String, CodingKey {
         case reference, sum, multiply, divide
@@ -55,19 +55,6 @@ class Formula: Codable {
         case not, and, or
         case formulaIf = "if"
         case concat
-    }
-}
-
-// MARK: - Reference
-
-struct Reference: Codable {
-    let reference: String?
-    let value: Value?
-    let formula: Formula?
-    let isGreater: [Reference]?
-    
-    enum CodingKeys: String, CodingKey {
-        case reference, value, formula
-        case isGreater = "is_greater"
+        case value
     }
 }
